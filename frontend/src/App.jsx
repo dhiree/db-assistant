@@ -3,8 +3,8 @@
 import { useState } from "react"
 import axios from "axios"
 import { Database, Server, Search, AlertCircle } from "lucide-react"
-import './index.css'; // Add this line
-
+import './index.css'; 
+import api from "./api";
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,7 +29,9 @@ export default function NaturalLanguageMongoDBQuery() {
     try {
       setIsConnecting(true)
       setError("")
-      const res = await axios.post("http://localhost:5000/connect-db", { mongoUri })
+      const res = await axios.post(`${api.serverUrl}/connect-db`, { mongoUri });
+      console.log("server--->",res)
+
       if(!res){
         console.log("error")
       }
@@ -51,7 +53,7 @@ export default function NaturalLanguageMongoDBQuery() {
     try {
       setIsQuerying(true)
       setError("")
-      const res = await axios.post("http://localhost:5000/query", { prompt, collectionName })
+      const res = await axios.post(`${api.serverUrl}/query`, { prompt, collectionName })
       setResult(res.data.result)
       setMongoQuery(res.data.mongoQuery)
     } catch (err) {
