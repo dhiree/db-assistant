@@ -11,6 +11,10 @@ app.use(bodyParser.json());
 
 let dbConnection = null;
 
+app.get("/", (req, res) => {
+    res.send("Apis Is working")
+})
+
 // Connect to MongoDB dynamically
 app.post('/connect-db', async (req, res) => {
     const { mongoUri } = req.body;
