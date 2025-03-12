@@ -19,6 +19,8 @@ app.get("/", (req, res) => {
 app.post('/connect-db', async (req, res) => {
     const { mongoUri } = req.body;
 
+
+    
     try {
         dbConnection = await mongoose.connect(mongoUri, {});
         res.json({ success: true, message: 'MongoDB connected successfully' });
