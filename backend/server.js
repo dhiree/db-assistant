@@ -16,6 +16,14 @@ app.get("/", (req, res) => {
 });
 
 // Use mongo routes
+// app.use('/api', mongoRoutes);
+
+// const PORT = process.env.PORT || 5000;
+// console.log("🚀 ~ PORT:", PORT)
+// app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+
+
 app.use('/api', mongoRoutes);
 
 const PORT = process.env.PORT || 5000;
