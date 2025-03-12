@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 
 const mongoRoutes = require('./routes/mongoRoute'); 
+const sqlRoutes = require("./routes/sqlRoutes")
 
 const app = express();
 app.use(cors());
@@ -25,6 +26,9 @@ app.get("/", (req, res) => {
 
 
 app.use('/api', mongoRoutes);
+
+app.use('/api-v1', sqlRoutes);
+
 
 const PORT = process.env.PORT || 5000;
 console.log("🚀 ~ PORT:", PORT)
