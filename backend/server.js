@@ -27,7 +27,7 @@ app.get("/", (req, res) => {
 
 app.use('/api', mongoRoutes);
 
-app.use('/api-v1', sqlRoutes);
+app.use('/api', sqlRoutes);
 
 
 const PORT = process.env.PORT || 5000;

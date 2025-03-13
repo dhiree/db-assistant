@@ -1,26 +1,28 @@
-// sqlController.js
-
-const { Client } = require('mysql2'); 
+const mysql = require('mysql2/promise');
 const axios = require('axios');
 
-// SQL connection handler
 let dbClient = null;
 
 // Connect to SQL database dynamically
 const connectDB = async (req, res) => {
-    const { dbUri } = req.body; 
+    const { dbName, dbHostName, port, userName, password } = req.body; 
+
     try {
-        dbClient = new Client({
-            connectionString: dbUri,
+        dbClient = await mysql.createConnection({
+            host: dbHostName,
+            user: userName,
+            password: password,
+            database: dbName,
+            port: port || 3306
         });
-        await dbClient.connect();
+
         res.json({ success: true, message: 'SQL Database connected successfully' });
     } catch (err) {
         res.status(500).json({ success: false, message: 'SQL connection failed', error: err.message });
     }
 };
 
-// Handle query generation from prompt and execute it
+// Handle query generation and execution
 const handleQuery = async (req, res) => {
     const { prompt, tableName } = req.body;
 
@@ -29,16 +31,19 @@ const handleQuery = async (req, res) => {
     }
 
     try {
-        // Prompt Gemini with strict instructions for SQL query generation
+        // Fetch the table schema
+        const [columns] = await dbClient.execute(`DESCRIBE ${tableName}`);
+        const schemaInfo = columns.map(col => `${col.Field} (${col.Type})`).join(", ");
+
+        // Call Gemini API with enhanced context
         const geminiRes = await axios.post(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
                 contents: [{
                     parts: [{
-                        text: `Convert this natural language prompt into a valid SQL query. 
-                        If the prompt requires a simple SELECT query, return the appropriate SQL query.
-                        If the prompt needs more advanced logic (like JOINs, GROUP BY, etc.), return a valid SQL query.
-                        Do NOT include code blocks, markdown, or any explanation — only return the SQL query.`
+                        text: `Convert this natural language prompt into a valid SQL query.  
+                        Use the following table structure: ${tableName} - ${schemaInfo}.
+                        Ensure correct column usage. Do NOT include markdown, explanations, or code blocks.`
                     }, {
                         text: prompt
                     }]
@@ -46,18 +51,15 @@ const handleQuery = async (req, res) => {
             }
         );
 
-        let generatedQueryText = geminiRes.data.candidates[0].content.parts[0].text.trim();
-        console.log('Raw Gemini Response:', generatedQueryText);
+        let generatedQueryText = geminiRes.data.candidates?.[0]?.content?.parts?.[0]?.text.trim() || "";
 
-        // Clean up in case Gemini still sends code blocks
-        if (generatedQueryText.startsWith("```")) {
-            generatedQueryText = generatedQueryText.replace(/```(?:sql)?\n?/, '').replace(/```$/, '').trim();
-        }
+        // Sanitize the query (removes unwanted characters)
+        generatedQueryText = generatedQueryText.replace(/```(?:sql)?\n?/, '').replace(/```$/, '').trim();
 
-        // Execute the generated SQL query
-        const result = await dbClient.query(generatedQueryText);
+        // Execute SQL
+        const [result] = await dbClient.execute(generatedQueryText);
 
-        res.json({ success: true, sqlQuery: generatedQueryText, result: result.rows });
+        res.json({ success: true, sqlQuery: generatedQueryText, result });
 
     } catch (err) {
         console.error('Error in /query:', err);
