@@ -165,7 +165,7 @@ export default function NaturalLanguageMongoDBQuery() {
         <Card>
           <CardHeader>
             <CardTitle>Query Results</CardTitle>
-            <CardDescription>Generated MongoDB query and results</CardDescription>
+            <CardDescription>Generated Db query and results</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="query" className="w-full">
@@ -174,7 +174,7 @@ export default function NaturalLanguageMongoDBQuery() {
                   value="query"
                   className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 >
-                  MongoDB Query
+                   Query
                 </TabsTrigger>
                 <TabsTrigger
                   value="results"
