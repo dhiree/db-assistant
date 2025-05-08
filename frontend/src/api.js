@@ -1,6 +1,6 @@
 // api.js
 //let localUrl = "http://localhost:5000";
-let serverUrl = "http://localhost:5000/api";
+let serverUrl = "https://db-assistant.vercel.app/"
 
 export default {
    // localUrl,
