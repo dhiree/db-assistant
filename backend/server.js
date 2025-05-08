@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 
 
 
-app.use('/api', mongoRoutes);
+app.use('/', mongoRoutes);
 
 app.use('/api', sqlRoutes);
 
