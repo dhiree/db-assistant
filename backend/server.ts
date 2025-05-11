@@ -2,8 +2,8 @@ import express, { Application } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import MongoRoutes from './routes/mongoRoute';
-import SqlRoutes from './routes/sqlRoutes';
+import MongoRoutes from './src/routes/mongoRoute';
+import SqlRoutes from './src/routes/sqlRoutes';
 
 dotenv.config();
 
