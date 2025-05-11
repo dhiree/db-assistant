@@ -10,7 +10,14 @@ import { Request, Response } from 'express';
 
     try {
       dbConnection = await mongoose.connect(mongoUri, {});
-      res.json({ success: true, message: 'MongoDB connected successfully' });
+      //console.log("dbConnection------>>>>",dbConnection)
+      res.json({ 
+        success: true, message: 'MongoDB connected successfully',
+        host: dbConnection.connection.host,
+        db: dbConnection.connection.name,
+       // DB: mongoose.connection.db?.aggregate,
+
+       });
     } catch (err: any) {
       res.status(500).json({
         success: false,
@@ -20,7 +27,7 @@ import { Request, Response } from 'express';
     }
   };
 
-  public handleQuery = async (req: Request, res: Response): Promise<void> => {
+ public handleQuery = async (req: Request, res: Response): Promise<void> => {
   const { prompt, collectionName } = req.body;
 
   if (mongoose.connection.readyState !== 1 || !mongoose.connection.db) {
@@ -28,27 +35,40 @@ import { Request, Response } from 'express';
     return;
   }
 
+  const url = 'https://api.openai.com/v1/chat/completions';
   try {
-    const geminiRes = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    const openaiRes = await axios.post(
+      url,
       {
-        contents: [
+        model: 'gpt-3.5-turbo', 
+        messages: [
+          // {
+          //   role: 'system',
+          //   content: 'You are an assistant that converts natural language into MongoDB queries.',
+          // },
           {
-            parts: [
-              {
-                text: `Convert this natural language prompt into a valid MongoDB query. 
-If the prompt requires simple filtering, return a JSON object that can be used inside find().
-If the prompt needs more advanced logic (like random sampling, grouping, etc.), return a valid aggregation pipeline as an array.
-Do NOT include code blocks, markdown, or any explanation — only return valid JSON.`,
-              },
-              { text: prompt },
-            ],
+     role: 'system',
+      content: 'You are an expert MongoDB assistant. Convert user prompts into valid MongoDB queries. Return only the raw JSON query.'
+},
+          {
+            role: 'user',
+            content: prompt,
           },
         ],
+        temperature: 0,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
       }
     );
 
-    let generatedQueryText = geminiRes.data.candidates[0].content.parts[0].text.trim();
+
+    console.log("openaiRes------------>>>>",openaiRes)
+
+    let generatedQueryText = openaiRes.data.choices[0].message.content.trim();
 
     if (generatedQueryText.startsWith('```')) {
       generatedQueryText = generatedQueryText.replace(/```(?:json)?\n?/, '').replace(/```$/, '').trim();
@@ -68,8 +88,6 @@ Do NOT include code blocks, markdown, or any explanation — only return valid J
     }
 
     const collection = mongoose.connection.db.collection(collectionName);
-
-    // Check if it's an aggregation pipeline (array) or a simple find query (object)
     const result = Array.isArray(mongoQuery)
       ? await collection.aggregate(mongoQuery).toArray()
       : await collection.find(mongoQuery).toArray();
@@ -77,10 +95,10 @@ Do NOT include code blocks, markdown, or any explanation — only return valid J
     res.json({ success: true, mongoQuery, result });
 
   } catch (err: any) {
-    console.error('Error in /query:', err);
+    console.error('Error in /query:', err.response?.data || err.message);
     res.status(500).json({ success: false, message: err.message });
   }
 };
-}
-
+ }
 export default MongoController
+
