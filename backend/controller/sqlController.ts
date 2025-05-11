@@ -7,7 +7,6 @@ import axios from 'axios';
  class SQLController {
   private dbClient: Connection | null = null;
 
-  // Connect to SQL database dynamically
   public connectDB = async (req: Request, res: Response): Promise<void> => {
     const { dbName, dbHostName, port, userName, password } = req.body;
 
@@ -30,7 +29,6 @@ import axios from 'axios';
     }
   };
 
-  // Handle query generation and execution
   public handleQuery = async (req: Request, res: Response): Promise<void> => {
     const { prompt, tableName } = req.body;
 
@@ -40,7 +38,6 @@ import axios from 'axios';
     }
 
     try {
-      // Fetch the table schema
       const [columns] = await this.dbClient.execute(`DESCRIBE ${tableName}`);
       const schemaArray = (columns as any[]).map(col => `${col.Field} (${col.Type})`);
       const schemaInfo = schemaArray.join(', ');
@@ -66,7 +63,6 @@ Ensure correct column usage. Do NOT include markdown, explanations, or code bloc
 
       let generatedQueryText = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
 
-      // Remove backticks/code block formatting if present
       generatedQueryText = generatedQueryText.replace(/```(?:sql)?\n?/, '').replace(/```$/, '').trim();
       // Execute the generated SQL
       const [result] = await this.dbClient.execute(generatedQueryText);
