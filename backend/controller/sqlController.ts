@@ -68,7 +68,6 @@ Ensure correct column usage. Do NOT include markdown, explanations, or code bloc
 
       // Remove backticks/code block formatting if present
       generatedQueryText = generatedQueryText.replace(/```(?:sql)?\n?/, '').replace(/```$/, '').trim();
-console.log("dbClient------------------>>>>>>>",this.dbClient)
       // Execute the generated SQL
       const [result] = await this.dbClient.execute(generatedQueryText);
       console.log("result-------------->>>>>>>",result)
