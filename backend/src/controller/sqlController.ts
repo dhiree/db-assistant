@@ -29,6 +29,7 @@ import axios from 'axios';
     }
   };
 
+  
   public handleQuery = async (req: Request, res: Response): Promise<void> => {
     const { prompt, tableName } = req.body;
 
