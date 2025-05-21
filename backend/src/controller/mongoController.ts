@@ -8,8 +8,10 @@ import { Request, Response } from 'express';
     const { mongoUri } = req.body;
      let  dbConnection:any
 
+
     try {
       dbConnection = await mongoose.connect(mongoUri, {});
+      console.log(dbConnection)
       res.json({ success: true, message: 'MongoDB connected successfully' });
     } catch (err: any) {
       res.status(500).json({
